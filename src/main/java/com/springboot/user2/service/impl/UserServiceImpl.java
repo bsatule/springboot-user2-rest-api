@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -63,13 +64,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto getUserById(long id) {
+    public UserDto getUserById(String id) {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
         return mapToDto(user);
     }
 
     @Override
-    public UserDto updateUser(UserDto userDto, long id) {
+    public UserDto updateUser(UserDto userDto, String id) {
         // get post by id from the database
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
 
@@ -84,10 +85,44 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUserById(long id) {
+    public List<User> searchUser(String firstName, String surName, String pinCode) {
+        List<User> user=userRepository.findByFirstNameOrLastNameOrPin(firstName, surName,pinCode);
+        return user;
+    }
+
+    @Override
+    public void deleteUserById(String id) {
         // get post by id from the database
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
         userRepository.delete(user);
+
+    }
+
+    @Override
+    public List<User> getUserSortedDOJ() {
+        List<User> user=userRepository.findByOrderByDateOfJoiningAsc();
+        return user;
+    }
+
+    @Override
+    public List<User> getUserSortedDOB() {
+        List<User> user=userRepository.findByOrderByDateOfBirthAsc();
+        return user;
+    }
+
+    @Override
+    public Optional<User> findUserById(String id) {
+        return Optional.empty();
+    }
+
+    @Override
+    public void softDeleteUser(String id) {
+        Optional<User> user=userRepository.findById(id);
+        if(user.isPresent())
+        {
+            user.get().setDeleteflag("Y");
+            userRepository.save(user.get());
+        }
 
     }
 
